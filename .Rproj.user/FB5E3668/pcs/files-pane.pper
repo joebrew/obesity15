@@ -1,0 +1,9 @@
+{
+    "path" : "~/obesity15",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}
