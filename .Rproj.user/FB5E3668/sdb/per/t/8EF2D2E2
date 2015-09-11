@@ -1,0 +1,18 @@
+{
+    "contents" : "---\ntitle: \"1st grade obesity and overweight in Alachua County\"\nauthor: \"Ben Brew and Joe Brew\"\ndate: \"September 11, 2015\"\noutput: pdf_document\n---\n\nBen and Joe's 1st grade obesity report\n\n```{r, echo = FALSE}\nlibrary(knitr)\nopts_chunk$set(comment = NA, warning = FALSE, message = FALSE, echo = FALSE)\n```\n\n```{r}\n# READ IN CLEANED UP OBESITY DATA\nsource('read_in.R')\n```\n\n",
+    "created" : 1442001355959.000,
+    "dirty" : false,
+    "encoding" : "ISO8859-1",
+    "folds" : "",
+    "hash" : "2465121933",
+    "id" : "8EF2D2E2",
+    "lastKnownWriteTime" : 1442001639,
+    "path" : "~/obesity15/report.Rmd",
+    "project_path" : "report.Rmd",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "type" : "r_markdown"
+}

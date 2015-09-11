@@ -1,0 +1,19 @@
+---
+title: "1st grade obesity and overweight in Alachua County"
+author: "Ben Brew and Joe Brew"
+date: "September 11, 2015"
+output: pdf_document
+---
+
+Ben and Joe's 1st grade obesity report
+
+```{r, echo = FALSE}
+library(knitr)
+opts_chunk$set(comment = NA, warning = FALSE, message = FALSE, echo = FALSE)
+```
+
+```{r}
+# READ IN CLEANED UP OBESITY DATA
+source('read_in.R')
+```
+

@@ -1,3 +1,8 @@
+######
+# THIS SCRIPT READS IN OBESITY DATA,
+# CLEANS IT, AND SAVES IT TO AN RDATA FILE
+######
+
 library(dplyr)
 library(ggplot2)
 library(tidyr)
@@ -312,6 +317,11 @@ if('temp.RData' %in% dir()){
   screen$Race <- NULL
   
   
+  # Get percentile
+  screen$bmi_percentile <- pnorm(screen$Z) * 100
+  
+  # Get rid of 2015 data
+  screen <- screen[screen$year != 2015,]
   
   #####
   # SAVE A CHECKPOINT
@@ -319,11 +329,7 @@ if('temp.RData' %in% dir()){
   save.image(paste0(private, 'temp.RData'))
 }
 
-# Get percentile
-screen$bmi_percentile <- pnorm(screen$Z) * 100
 
-# Get rid of 2015 data
-screen <- screen[screen$year != 2015,]
 
 #####
 # RESET DIRECTORIES (in case image was saved on other system)
