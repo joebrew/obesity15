@@ -1,6 +1,6 @@
 *.RData
 *.Rhistory
-
+.csv
 /data
 data/
 .Rproj.user

@@ -21,8 +21,8 @@ set_directories <- function(){
     assign('private', '/media/joebrew/JB/fdoh/private/obesity/data201415/', envir = .GlobalEnv)
     assign('public', '/home/joebrew/Documents/obesity15/', envir = .GlobalEnv)
   } else {
-    assign('private', '~/Desktop/', envir = .GlobalEnv) # CHANGE THIS LINE
-    assign('public', '/home/benmbrew/Documents/obesity15/', envir = .GlobalEnv)
+    assign('private', '/media/benbrew/HP V100W/data201415/', envir = .GlobalEnv) # CHANGE THIS LINE
+    assign('public', '/home/benbrew/Documents/obesity15/', envir = .GlobalEnv)
   }
 }
 set_directories()
