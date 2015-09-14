@@ -18,3 +18,58 @@ source('read_in.R')
 set_directories()
 ```
 
+# Obesity Rates of 1st Graders over time 
+
+```{r}
+# Make column names for screen lower case 
+names(screen) <- tolower(names(screen))
+
+# Subset to 1st grade 
+screen_first <- screen[which(screen$grade == '1'),]
+
+# Make year a factor 
+screen_first$year <- as.factor(screen_first$year)
+
+# use make.names to avoid "duplicate columns error"
+valid_column_names <- make.names(names=names(screen_first), unique=TRUE, allow_ = TRUE)
+names(screen_first) <- valid_column_names
+
+# group by weight category and summarise 
+obese <- screen_first %>%
+  group_by(year) %>% 
+  summarise(overweight = sum(catbi == "overweight"),
+            total = n())
+
+# Make a column in obese for percent obese for each year
+obese$percent <- (obese$overweight/obese$total)*100
+obese$percent <- round(obese$percent, 2)
+
+# plot overweight percent over time using bargraph 
+ggplot(data = obese, aes(year, percent)) + geom_bar(colour = "lightblue", fill = "blue",stat = "identity") + xlab("Year") + ylab("Percent Overweight") + ggtitle("Obesity Rate for First Graders") + ylim(c(0, 40)) + 
+geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+  
+```
+
+## Obesity Rates for First Graders by Race 
+```{r}
+# Group by year and summarise for race 
+race <- screen_first %>% 
+  group_by(year, race) %>%
+  summarise(overweight = sum(catbi == 'overweight'),
+            total = n())
+
+# Drop Indian from the graph because of small sample size
+race <- race[which(race$race != 'Indian'),]
+
+# Make percent for each variable 
+race$percent_obese <- (race$overweight/race$total)*100
+race$percent_obese <- round(race$percent_obese, 2)
+
+# Plot each race obesity rate through time 
+ggplot(data = race, aes(year, percent_obese, group = race, colour = race)) + geom_line() + 
+  ylim(c(0,100)) + xlab("Year") + ylab("Percent Obese") + ggtitle("Percent Obese by Race")
+
+```
+
+
+```
