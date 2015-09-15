@@ -2,7 +2,7 @@
 title: "1st grade obesity and overweight in Alachua County"
 author: "Ben Brew and Joe Brew"
 date: "September 11, 2015"
-output: pdf_document
+output: html_document
 ---
 
 Ben and Joe's 1st grade obesity report
@@ -52,7 +52,7 @@ geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, col
 
 ## Obesity Rates for First Graders by Race 
 ```{r}
-# Group by year and summarise for race 
+# Group by year and race and summarise for overweight 
 race <- screen_first %>% 
   group_by(year, race) %>%
   summarise(overweight = sum(catbi == 'overweight'),
@@ -67,9 +67,159 @@ race$percent_obese <- round(race$percent_obese, 2)
 
 # Plot each race obesity rate through time 
 ggplot(data = race, aes(year, percent_obese, group = race, colour = race)) + geom_line() + 
-  ylim(c(0,100)) + xlab("Year") + ylab("Percent Obese") + ggtitle("Percent Obese by Race")
+  ylim(c(0,100)) + xlab("Year") + ylab("Percent Obese") + ggtitle("Percent Obese by Race") +
+  scale_colour_brewer(palette="Set1")
+
+```
+
+## Obesity rate for first graders by free lunch status 
+
+```{r}
+# Group by year, lunch status and summarise for race 
+lunch <- screen_first %>% 
+  group_by(year, lunch) %>%
+  summarise(overweight = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent for each variable 
+lunch$percent_obese <- (lunch$overweight/lunch$total)*100
+lunch$percent_obese <- round(lunch$percent_obese, 2)
+
+# Plot each race obesity rate through time 
+ggplot(data = lunch, aes(year, percent_obese, group = lunch, colour = lunch)) + geom_line(size = 2) + 
+  ylim(c(0,50)) + xlab("Year") + ylab("Percent Obese") + ggtitle("Percent Obese by Lunch Status") + scale_colour_brewer(palette="Set1")
+
+```
+
+## Obesity rate by gender 
+
+```{r}
+# Group by year, gender status and summarise for race 
+gender <- screen_first %>%
+  group_by(year, gender) %>%
+  summarise(overweight = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent for each variable 
+gender$percent_obese <- (gender$overweight/gender$total)*100
+gender$percent_obese <- round(gender$percent_obese, 2)
+
+# Plot each race obesity rate through time 
+ggplot(data = gender, aes(year, percent_obese, group = gender, colour = gender)) + geom_line(size = 2) + 
+  ylim(c(0,50)) + xlab("Year") + ylab("Percent Obese") + ggtitle("Percent Obese by gender") + scale_colour_brewer(palette="Set1")
+
+```
+
+## Correlation between obesity in first and 6th grade (only include data with observations in both cases, using screen)
+
+```{r}
+library(reshape2)
+# use make.names to avoid "duplicate columns error"
+valid_column_names <- make.names(names=names(screen), unique=TRUE, allow_ = TRUE)
+names(screen) <- valid_column_names
+
+# recode personid to character
+screen$personid <- as.character(screen$personid)
+
+# Subset data where every observation for 1st grader has a corresponding 6th grade observation
+dat <- screen[screen$grade == '1' | screen$grade == '6', ]
+
+# Recode grade to character as it will be a column name later 
+dat$grade <- ifelse(dat$grade == '1', 'first', 'sixth')
+
+# Keep only the necessary columns
+dat <- dat[, c("personid", "grade", "bmi_percentile.1")]
+
+# Remove NAs 
+dat <- dat[!is.na(dat$personid),]
+
+# Create vector of true and false where true indicates if it is a duplicate
+dups <- duplicated(dat$personid) 
+
+# cbind dups onto dat
+dat_new <- cbind(dat, dups)
+
+# drop all rows where dups == false
+dat_dupe <- dat_new[which(dat_new$dups == TRUE),]
+
+# drop dups column
+dat_dupe <- dat_dupe[, c("personid", "grade", "bmi_percentile.1")]
+
+# Sort dat_dupe by personid 
+dat_dupe <- dat_dupe[order(dat_dupe$personid),]
+
+# Make so there are columns for first and 6th grade data
+dat_final <- dcast(dat_dupe, personid ~ grade, 
+                   fun.aggregate = last)
+
+# plot 1st grade bmi percentile by 6th grade bmi percentile 
+plot(dat_final$first, dat_final$sixth, 
+     pch = 16,
+     bty = 'n',
+     cex = 1.2, 
+     col = adjustcolor("blue", alpha.f = 0.6),
+     xlab = "First Grade BMI Percentile",
+     ylab = "Sixth Grade BMI Percentile",
+     main = "Correlation between First and Sixth Grade Weight")
+abline(0, 1)
 
 ```
 
 
+## Obesity rates by school 
+
+```{r}
+# Make school a factor and use screen_first (only first graders)
+screen_first$school <- as.factor(screen_first$school)
+
+# Examine average obesity rate as each school
+school <- screen_first %>%
+  group_by(school) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percentage 
+school$percent <- (school$obese/school$total)*100
+school$percent <- round(school$percent, 2)
+
+# drop schools with less than 50 students 
+school <- school[which(school$total > 50),]
+
+# Plot average obesity rate for each school over the last 7 years
+ggplot(data = school, aes(reorder(school,-percent), percent)) + geom_bar(stat = "identity",, fill = 'grey') + theme_bw() + xlab('') + ylab('Percent Overweight') +
+   theme(axis.text.x = element_text(colour="grey20",size=6,angle=50,hjust=0.7,vjust=.7,face="plain")) + ggtitle('Average Overweight Rate by School 2007-2014')
+
 ```
+
+## Break up and analyze at each school 
+
+# Archer Elementary School 
+
+```{r}
+# Make school a factor 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'ARCHER ELEMENTARY SCHOOL'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+```
+
