@@ -256,7 +256,9 @@ if('temp.RData' %in% dir()){
                                                                                                                                           'WILES, KIMBALL ELEMENTARY',
                                                                                                                                           ifelse(screen$School_Name == 'WILLIAMS, JOSEPH ELEMENT',
                                                                                                                                                  'WILLIAMS, JOSEPH ELEMENTARY',
-                                                                                                                                                 screen$School_Name))))))))))))))))))
+                                                                                                                                                 ifelse(screen$School_Name == 'CHILES, LAWTON M. ELEMEN',
+                                                                                                                                                        'CHILES, LAWTON M. ELEMENTARY',
+                                                                                                                                                 screen$School_Name)))))))))))))))))))
   screen$School_Name <- NULL
   
   

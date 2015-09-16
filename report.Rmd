@@ -18,7 +18,7 @@ source('read_in.R')
 set_directories()
 ```
 
-# Obesity Rates of 1st Graders over time 
+# Obesity Rates of 1st Graders 2007 - 2014
 
 ```{r}
 # Make column names for screen lower case 
@@ -45,10 +45,11 @@ obese$percent <- (obese$overweight/obese$total)*100
 obese$percent <- round(obese$percent, 2)
 
 # plot overweight percent over time using bargraph 
-ggplot(data = obese, aes(year, percent)) + geom_bar(colour = "lightblue", fill = "blue",stat = "identity") + xlab("Year") + ylab("Percent Overweight") + ggtitle("Obesity Rate for First Graders") + ylim(c(0, 40)) + 
+ggplot(data = obese, aes(year, percent)) + geom_bar(colour = "lightblue", fill = "black",stat = "identity", alpha = 0.5) + xlab("Year") + ylab("Percent Overweight") + ggtitle("Obesity Rate for First Graders") + ylim(c(0, 40)) + theme_bw() + ggtitle('Figure 1') + 
 geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
-  
 ```
+
+#####  First grade obesity rates, defined as the proportion of first graders classified as "overweight" according to their Body Mass Indes (BMI) has varied between 24% and 32% since 2007. The obesity rate for first graders was highest in 2007 and lowest 2013. 
 
 ## Obesity Rates for First Graders by Race 
 ```{r}
@@ -67,16 +68,19 @@ race$percent_obese <- round(race$percent_obese, 2)
 
 # Plot each race obesity rate through time 
 ggplot(data = race, aes(year, percent_obese, group = race, colour = race)) + geom_line() + 
-  ylim(c(0,100)) + xlab("Year") + ylab("Percent Obese") + ggtitle("Percent Obese by Race") +
-  scale_colour_brewer(palette="Set1")
+  ylim(c(0,65)) + xlab("Year") + ylab("Percent Obese")+ ggtitle('figure 2') + 
+  scale_colour_brewer(palette="Set1") + theme_bw() + labs(color = "Race")                                                                   
 
 ```
+
+##### Figure 2 shows the obesity rate for first graders by race. Asian students have the lowest obesity rate, consistently around 20% since 2007.  
 
 ## Obesity rate for first graders by free lunch status 
 
 ```{r}
 # Group by year, lunch status and summarise for race 
 lunch <- screen_first %>% 
+  filter(!is.na(lunch)) %>%
   group_by(year, lunch) %>%
   summarise(overweight = sum(catbi == 'overweight'),
             total = n())
@@ -86,9 +90,8 @@ lunch$percent_obese <- (lunch$overweight/lunch$total)*100
 lunch$percent_obese <- round(lunch$percent_obese, 2)
 
 # Plot each race obesity rate through time 
-ggplot(data = lunch, aes(year, percent_obese, group = lunch, colour = lunch)) + geom_line(size = 2) + 
-  ylim(c(0,50)) + xlab("Year") + ylab("Percent Obese") + ggtitle("Percent Obese by Lunch Status") + scale_colour_brewer(palette="Set1")
-
+ggplot(data = lunch, aes(year, percent_obese, group = lunch, colour = factor(lunch, labels = c("Free", "Not Free")))) + geom_line(size = 2) + ylim(c(0,50)) + xlab("Year") + ylab("Percent Obese") + ggtitle("Figure 3")  + scale_colour_brewer(palette="Set1") + theme_bw() + labs(color = "Lunch Status")                                                                                                                                                                                                                                                                      
+  
 ```
 
 ## Obesity rate by gender 
@@ -105,8 +108,8 @@ gender$percent_obese <- (gender$overweight/gender$total)*100
 gender$percent_obese <- round(gender$percent_obese, 2)
 
 # Plot each race obesity rate through time 
-ggplot(data = gender, aes(year, percent_obese, group = gender, colour = gender)) + geom_line(size = 2) + 
-  ylim(c(0,50)) + xlab("Year") + ylab("Percent Obese") + ggtitle("Percent Obese by gender") + scale_colour_brewer(palette="Set1")
+ggplot(data = gender, aes(year, percent_obese, group = gender, colour = factor(gender, labels = c("Female", "Male")))) + geom_line(size = 2) + ylim(c(0,50)) + xlab("Year") + ylab("Percent Obese") + ggtitle("Figure 4") + scale_colour_brewer(palette="Set1") + labs(color = "Gender") + 
+  theme_bw()
 
 ```
 
@@ -128,7 +131,7 @@ dat <- screen[screen$grade == '1' | screen$grade == '6', ]
 dat$grade <- ifelse(dat$grade == '1', 'first', 'sixth')
 
 # Keep only the necessary columns
-dat <- dat[, c("personid", "grade", "bmi_percentile.1")]
+dat <- dat[, c("personid", "grade", "z")]
 
 # Remove NAs 
 dat <- dat[!is.na(dat$personid),]
@@ -143,7 +146,7 @@ dat_new <- cbind(dat, dups)
 dat_dupe <- dat_new[which(dat_new$dups == TRUE),]
 
 # drop dups column
-dat_dupe <- dat_dupe[, c("personid", "grade", "bmi_percentile.1")]
+dat_dupe <- dat_dupe[, c("personid", "grade", "z")]
 
 # Sort dat_dupe by personid 
 dat_dupe <- dat_dupe[order(dat_dupe$personid),]
@@ -158,8 +161,8 @@ plot(dat_final$first, dat_final$sixth,
      bty = 'n',
      cex = 1.2, 
      col = adjustcolor("blue", alpha.f = 0.6),
-     xlab = "First Grade BMI Percentile",
-     ylab = "Sixth Grade BMI Percentile",
+     xlab = "First Grade Weight Z Score",
+     ylab = "Sixth Grade Weight Z Score",
      main = "Correlation between First and Sixth Grade Weight")
 abline(0, 1)
 
@@ -169,8 +172,6 @@ abline(0, 1)
 ## Obesity rates by school 
 
 ```{r}
-# Make school a factor and use screen_first (only first graders)
-screen_first$school <- as.factor(screen_first$school)
 
 # Examine average obesity rate as each school
 school <- screen_first %>%
@@ -191,14 +192,13 @@ ggplot(data = school, aes(reorder(school,-percent), percent)) + geom_bar(stat = 
 
 ```
 
-## Break up and analyze at each school 
+# Break up and analyze at each school 
 
-# Archer Elementary School 
+## Archer Elementary School 
+
+## Examine obesity rate by year
 
 ```{r}
-# Make school a factor 
-screen_first$school <- as.factor(screen_first$school)
-
 # Make a data frame by school 
 school <- screen_first[which(screen_first$school == 'ARCHER ELEMENTARY SCHOOL'),]
 
@@ -215,11 +215,2010 @@ dat_school$percent <- round(dat_school$percent, 2)
 # bar plot obesity rate 
 ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
 
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
 # Group by year and race 
 dat_race <- school %>%
   group_by(year,race) %>%
   summarise(obese = sum(catbi == 'overweight'),
             total = n())
 
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
 ```
 
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Lawton Chiles Elementary School 
+
+## Examine obesity rate by year
+
+```{r}
+# There are two indicators for LC elem in the data 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'CHILES, LAWTON M. ELEMENTARY'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Bar graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  filter(!is.na(lunch)) %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Duval Elementary 
+
+## Examine obesity rate by year
+
+```{r}
+# There are two indicators for LC elem in the data 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'DUVAL, CHARLES W. ELEMENTARY'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Bar graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  filter(!is.na(lunch)) %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+
+# JJ Finley
+
+## Examine obesity rate by year
+
+```{r}
+# There are two indicators for LC elem in the data 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'FINLEY, J. J. ELEMENTARY'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Bar graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  filter(!is.na(lunch)) %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Glenn Springs
+
+## Examine obesity rate by year
+
+```{r}
+# There are two indicators for LC elem in the data 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'GLEN SPRINGS ELEMENTARY'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Bar graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  filter(!is.na(lunch)) %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Hidden Oak
+
+## Examine obesity rate by year
+
+```{r}
+# There are two indicators for LC elem in the data 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'HIDDEN OAK ELEMENTARY'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Bar graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  filter(!is.na(lunch)) %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# High Springs Community School
+
+## Examine obesity rate by year
+
+```{r}
+# There are two indicators for LC elem in the data 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'HIGH SPRINGS COMMUNITY SCHOOL'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Bar graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  filter(!is.na(lunch)) %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Idylwild elementary
+
+## Examine obesity rate by year
+
+```{r}
+# There are two indicators for LC elem in the data 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'IDYLWILD ELEMENTARY'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Bar graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  filter(!is.na(lunch)) %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# W.W. Irby Elementary
+
+## Examine obesity rate by year
+
+```{r}
+# There are two indicators for LC elem in the data 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'IRBY, W.W. ELEMENTARY'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Bar graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  filter(!is.na(lunch)) %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Littlewood Elementary
+
+## Examine obesity rate by year
+
+```{r}
+# There are two indicators for LC elem in the data 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'LITTLEWOOD ELEMENTARY'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Bar graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  filter(!is.na(lunch)) %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Newberry Elementary
+
+## Examine obesity rate by year
+
+```{r}
+# There are two indicators for LC elem in the data 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'NEWBERRY ELEMENTARY'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Bar graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  filter(!is.na(lunch)) %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Norton Elementary
+
+## Examine obesity rate by year
+
+```{r}
+# There are two indicators for LC elem in the data 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'NORTON, C.W. ELEMENTARY'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Bar graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  filter(!is.na(lunch)) %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Talbot Elementary
+
+## Examine obesity rate by year
+
+```{r}
+# There are two indicators for LC elem in the data 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'TALBOT, WILLIAM S. ELEMENTARY'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Bar graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  filter(!is.na(lunch)) %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Terwilliger Elementary
+
+## Examine obesity rate by year
+
+```{r}
+# There are two indicators for LC elem in the data 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'TERWILLIGER, MYRA ELEMENTARY'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Bar graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  filter(!is.na(lunch)) %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Kemball Wiles Elementary
+
+## Examine obesity rate by year
+
+```{r}
+# There are two indicators for LC elem in the data 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'WILES, KIMBALL ELEMENTARY'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Bar graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  filter(!is.na(lunch)) %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Joseph Williams Elementary
+
+## Examine obesity rate by year
+
+```{r}
+# There are two indicators for LC elem in the data 
+screen_first$school <- as.factor(screen_first$school)
+
+# Make a data frame by school 
+school <- screen_first[which(screen_first$school == 'WILLIAMS, JOSEPH ELEMENTARY'),]
+
+# group by year and summarise for obese rate 
+dat_school <- school %>%
+  group_by(year) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# make percent 
+dat_school$percent <- (dat_school$obese/dat_school$total)*100
+dat_school$percent <- round(dat_school$percent, 2)
+
+# bar plot obesity rate 
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'grey', colour = 'grey') + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('Year') + ylab('Percent')
+
+```
+
+# Examine obesity rates by year for each race and aggregated over all years for each race
+
+```{r}
+# Group by year and race 
+dat_race <- school %>%
+  group_by(year,race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Line graph
+ggplot(data = dat_race, aes(year, percent, group = dat_race$race, colour= dat_race$race)) + 
+  geom_line()
+
+# Group by year and race 
+dat_race <- school %>%
+  group_by(race) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_race$percent <- (dat_race$obese/dat_race$total)*100
+dat_race$percent <- round(dat_race$percent, 2)
+
+# Bar graph
+ggplot(data = dat_race, aes(race, percent)) + 
+  geom_bar(stat = 'identity', fill = "lightblue") + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
+
+# Examine obesity rates by year for each gender and aggregated rates for each gender 
+
+```{r}
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(year, gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(year, percent, group = gender, colour= gender)) + 
+  geom_line(size = 2)
+
+# Group by year and  gender 
+dat_gender <- school %>%
+  group_by(gender) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_gender$percent <- (dat_gender$obese/dat_gender$total)*100
+dat_gender$percent <- round(dat_gender$percent, 2)
+
+# Line graph
+ggplot(data = dat_gender, aes(gender, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+```
+
+# Examine obesity rates by year for each lunch statuse and aggreaged over all years
+
+```{r}
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  group_by(year, lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+# Line graph
+ggplot(data = dat_lunch, aes(year, percent, group = lunch, colour= lunch)) + 
+  geom_line(size = 2)
+
+# Group by year and lunch status 
+dat_lunch <- school %>%
+  filter(!is.na(lunch)) %>%
+  group_by(lunch) %>%
+  summarise(obese = sum(catbi == 'overweight'),
+            total = n())
+
+# Make percent 
+dat_lunch$percent <- (dat_lunch$obese/dat_lunch$total)*100
+dat_lunch$percent <- round(dat_lunch$percent, 2)
+
+ggplot(data = dat_lunch, aes(lunch, percent)) + 
+  geom_bar(stat= 'identity', fill = 'lightblue') + 
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white")
+
+```
