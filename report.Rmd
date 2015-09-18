@@ -248,6 +248,14 @@ In this section we take a more in depth look at obesity rates among 1st graders 
 Lawton Chiles Elementary School had a total of 832 1st grade students between 2007 and 2014 and an average obesity rate of 22.36% for all first graders.
 Figure 8 shows the proportions of those students who are classified as overweight according to their BMI. 
 
+In line with the general trend, Asian 1st graders at Lawton Chiles have a significantly lower obesity rate relative to their 1st grade class mates. 
+
+
+Figure 10 shows that in recent years, female 1st graders at Lawton Chiles have a higher obesity rate than their male classmates. The other years show a much higher obesity rate for males than females. The general trend for both males and females is neigher substantially rising or falling over time. 
+
+figure 11 show the relationship between obesity and free lunch status. Those qualifying for free lunch have, on average, a higher obesity rate, but it varies depeding on the year. Obesity rates for both populations looked to be decreasing in recent years, but 2014 shows a slight increase in students not qualifying for free lunch and a large increase for those 1st graders qualifying for free lunch. 
+
+
 ```{r}
 # Make a data frame by school 
 school <- screen_first[which(screen_first$school == 'CHILES, LAWTON M. ELEMENTARY'),]
@@ -308,7 +316,6 @@ ggplot(data = dat_race, aes(race, percent)) +
 
 ```
 
-In line with the general trend, Asian 1st graders at Lawton Chiles have a significantly lower obesity rate relative to their 1st grade class mates. 
 
 ###  Obesity rate by gender (2007-2014)
 
@@ -330,9 +337,6 @@ ggplot(data = dat_gender, aes(year, percent)) +
   ggtitle('Figure 10') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
 ```
 
-Figure 10 shows that in recent years, female 1st graders at Lawton Chiles have a higher obesity rate than their male classmates. The other years show a much higher obesity rate for males than females. The general trend for both males and females is neigher substantially rising or falling over time. 
-
-figure 11 show the relationship between obesity and free lunch status. Those qualifying for free lunch have, on average, a higher obesity rate, but it varies depeding on the year. Obesity rates for both populations looked to be decreasing in recent years, but 2014 shows a slight increase in students not qualifying for free lunch and a large increase for those 1st graders qualifying for free lunch. 
 
 ###  Obesity rate by lunch (2007-2014)
 
@@ -353,7 +357,10 @@ position = position_dodge(width=0.5)
 ```
 
 ## Glenn Springs Elementary 
+
 Glenn Springs Elementary had a total of 604 1st graders between 2007 and 2014 and an average obesity rate of 22.19%. Figure 12 shows a peak in obesity rates in 2011 and 2012. Unlike Lawton Chiles, multiracial students make up the highest proportion of overweight 1st graders, followed by asians (Figure 13). This due mainly to a smaller sample size for the Asian population. 
+
+There is no significant difference between obesity rate among male and female students. The same holds for students who qualified for free lunch and those who did not (figure 14 & 15)
 
 ### Obesity Rate by Year 
 
@@ -670,6 +677,10 @@ ggplot(data = dat_lunch, aes(year, percent)) +
 
 ## W.W. Irby Elementary  
 
+W.W. Irby Elementary had 996 total 1st graders in the 2007-2014 time period and an average 27.62 obesity rate (4th among large schools). W.W. Irby Elementary School's 1st grade obesity rate was at it's highest in 2007 (36.49%) and steadily decreased until it reached it's low in 2010 (19.51%). It has slightly increased again in recent years at 23.87% in 2014 (figure 24)
+
+Hispanic 1st graders at W.W. Irby have the highest obesity rate at 37.78 (figure 25). From 2007-2010, 1st graders who did not qualify for free lunch had a substantially higher obesity rate relative to their lower income classmates. The opposite is true for the years 2011-2014. 
+
 ### Obesity Rate by Year 
 
 ```{r}
@@ -722,6 +733,9 @@ dat_race <- school %>%
 dat_race$percent <- (dat_race$obese/dat_race$total)*100
 dat_race$percent <- round(dat_race$percent, 2)
 
+# Drop indian 
+dat_race <- dat_race[which(dat_race$race != 'Indian'),]
+
 # Line graph
 ggplot(data = dat_race, aes(race, percent)) + 
   geom_bar(stat = 'identity', fill = "black", colour = "lightblue", alpha = 0.5) + 
@@ -770,6 +784,12 @@ ggplot(data = dat_lunch, aes(year, percent)) +
 ```
 
 ## Littlewood Elementary  
+
+Littlewood Elementary had 675 total 1st graders in the time period 2007-2014 and an average obesity rate of 21.93 (second to lowest in large schools). 
+
+In 2007, Littlewood had very low obesity rate at 14.13% among 1st graders (figure 28). This number has increase in recent years with a peak in 2012 (28.85%). In line with most schools, the Asian 1st graders at Littlewood have the lowest obesity rate (13.33%) over the time period 2007-2014, whereas Black students have the highest (figure 29).
+
+Again, similar to the trend in other schools, the 1st grade female population has an on average higher obesity rate than the male population. Littlewood's peak in 2012 was primarily driven by the female population, with over twice the obesity rate of the male population (figure 30). Further, student's qualifying for free lunch had an on average higher obesity rate during this time period, particularly in 2012 (figure 31).
 
 ### Obesity Rate by Year 
 
@@ -823,6 +843,9 @@ dat_race <- school %>%
 dat_race$percent <- (dat_race$obese/dat_race$total)*100
 dat_race$percent <- round(dat_race$percent, 2)
 
+# Drop Indian
+dat_race <- dat_race[which(dat_race$race != 'Indian'),]
+
 # Line graph
 ggplot(data = dat_race, aes(race, percent)) + 
   geom_bar(stat = 'identity', fill = "black", colour = "lightblue", alpha = 0.5) + 
@@ -865,12 +888,15 @@ dat_lunch$percent <- round(dat_lunch$percent, 2)
 
 # Bar graph
 ggplot(data = dat_lunch, aes(year, percent)) +
-  geom_bar(aes(fill = factor(lunch, labels = c('Free', 'Not Free'), )), stat = 'identity', position = 'dodge') + scale_fill_manual("Lunch Status",values = alpha(c('black', 'grey'), .6)) + 
-  ggtitle('Figure 11') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
+  geom_bar(aes(fill = factor(lunch, labels = c('Free', 'Not Free'), )), stat = 'identity', position = 'dodge') + scale_fill_manual("Lunch Status",values = alpha(c('black', 'grey'), .6)) + ggtitle('Figure 31') + xlab('') + ylab('Obesity Rate (%)') + theme_bw() + ylim(c(0,40))
 
 ```
 
-## William S. Talbot Elementary  
+## William S. Talbot Elementary 
+
+William S. Talbot Elementary had a 751 total 1st grade population in the time period 2007-2014 and an average obesity rate of 20.51, the lowest among large schools. At 20.83% in 2014, the obesity rate by year has never exceeded 27% and reached a low of 15.38% in 2009 (figure 32). 
+
+Like many other schools, Talbot Elementary's 1st grade Hispanic population has the highest obesity rate and the Asian population the lowest. The distribution of obesity by gender varies, showing no clear pattern, except for 2008 in whichthe obesity rate among female's was 0%. This is due entirely to a very small smaple size for female's in that year (figure 33). However, the distribution of obesity by lunch status shows a much clearer trend with student's qualifying for free lunch driving the obesity rate higher. However, the 0% obesity rate for student's qualifying for free lunch is misleading due to very small sample size for 2008. 
 
 ### Obesity Rate by Year 
 
@@ -889,7 +915,7 @@ dat_school$percent <- (dat_school$obese/dat_school$total)*100
 dat_school$percent <- round(dat_school$percent, 2)
 
 # bar plot obesity rate 
-ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'black', colour = 'lightblue', alpha = 0.5) + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('') + ylab('Obesity Rate (%)') + ggtitle('Figure 8') + theme_bw()
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'black', colour = 'lightblue', alpha = 0.5) + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('') + ylab('Obesity Rate (%)') + ggtitle('Figure 32') + theme_bw()
 
 ```
 
@@ -924,6 +950,9 @@ dat_race <- school %>%
 dat_race$percent <- (dat_race$obese/dat_race$total)*100
 dat_race$percent <- round(dat_race$percent, 2)
 
+# Drop Indian 
+dat_race <- dat_race[which(dat_race$race != 'Indian'),]
+
 # Line graph
 ggplot(data = dat_race, aes(race, percent)) + 
   geom_bar(stat = 'identity', fill = "black", colour = "lightblue", alpha = 0.5) + 
@@ -947,8 +976,7 @@ dat_gender$percent <- round(dat_gender$percent, 2)
 
 # Bar graph
 ggplot(data = dat_gender, aes(year, percent)) +
-  geom_bar(aes(fill = factor(gender, labels = c('Female', 'Male'), )), stat = 'identity', position = 'dodge') + scale_fill_manual("Gender",values = alpha(c('#0023a0', '#f9a635'), .7)) + 
-  ggtitle('Figure 10') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
+  geom_bar(aes(fill = factor(gender, labels = c('Female', 'Male'), )), stat = 'identity', position = 'dodge') + scale_fill_manual("Gender",values = alpha(c('#0023a0', '#f9a635'), .7)) + ggtitle('Figure 33') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
 ```
 
 ###  Obesity rate by lunch status (2007-2014)
@@ -966,14 +994,20 @@ dat_lunch$percent <- round(dat_lunch$percent, 2)
 
 # Bar graph
 ggplot(data = dat_lunch, aes(year, percent)) +
-  geom_bar(aes(fill = factor(lunch, labels = c('Free', 'Not Free'), )), stat = 'identity', position = 'dodge') + scale_fill_manual("Lunch Status",values = alpha(c('black', 'grey'), .6)) + 
-  ggtitle('Figure 11') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
+  geom_bar(aes(fill = factor(lunch, labels = c('Free', 'Not Free'), )), stat = 'identity', position = 'dodge') + scale_fill_manual("Lunch Status",values = alpha(c('black', 'grey'), .6)) + ggtitle('Figure 34') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
 
 ```
 
 ## Terwilliger Elementary 
 
-### Obesity Rate by Year 
+Terwilliger Elementary had 722 1st graders in the time period 2007-2014 and an average obesity rate of 36.15%, the highest among large schools. This higher average obesity rate is largely due to the years 2007 and 2014 (figure 35).
+
+Unlike other schools, the Asian and Black population have the higher average obesity rates in the time period 2007-2014. However, the Asian population is significantly smaller. Multiracial students enjoy the lowest obesity rate among 1st graders (figure 36).
+
+The distribution of obesity by gender varies, showing no clear pattern (figure 37). The same is true for lunch status- there is no significant difference between students qualifying for free lunch and those who do not. 
+
+
+### Obesity Rate by Year
 
 ```{r}
 # Make a data frame by school 
@@ -990,7 +1024,7 @@ dat_school$percent <- (dat_school$obese/dat_school$total)*100
 dat_school$percent <- round(dat_school$percent, 2)
 
 # bar plot obesity rate 
-ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'black', colour = 'lightblue', alpha = 0.5) + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('') + ylab('Obesity Rate (%)') + ggtitle('Figure 8') + theme_bw()
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'black', colour = 'lightblue', alpha = 0.5) + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('') + ylab('Obesity Rate (%)') + ggtitle('Figure 35') + theme_bw()
 
 ```
 
@@ -1025,10 +1059,13 @@ dat_race <- school %>%
 dat_race$percent <- (dat_race$obese/dat_race$total)*100
 dat_race$percent <- round(dat_race$percent, 2)
 
+# drop indian 
+dat_race <- dat_race[which(dat_race$race != 'Indian'),]
+
 # Line graph
 ggplot(data = dat_race, aes(race, percent)) + 
   geom_bar(stat = 'identity', fill = "black", colour = "lightblue", alpha = 0.5) + 
-  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + ggtitle('Figure 9') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + ggtitle('Figure 36') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
 
 ```
 
@@ -1049,7 +1086,7 @@ dat_gender$percent <- round(dat_gender$percent, 2)
 # Bar graph
 ggplot(data = dat_gender, aes(year, percent)) +
   geom_bar(aes(fill = factor(gender, labels = c('Female', 'Male'), )), stat = 'identity', position = 'dodge') + scale_fill_manual("Gender",values = alpha(c('#0023a0', '#f9a635'), .7)) + 
-  ggtitle('Figure 10') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
+  ggtitle('Figure 37') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
 ```
 
 ###  Obesity rate by lunch status (2007-2014)
@@ -1068,11 +1105,20 @@ dat_lunch$percent <- round(dat_lunch$percent, 2)
 # Bar graph
 ggplot(data = dat_lunch, aes(year, percent)) +
   geom_bar(aes(fill = factor(lunch, labels = c('Free', 'Not Free'), )), stat = 'identity', position = 'dodge') + scale_fill_manual("Lunch Status",values = alpha(c('black', 'grey'), .6)) + 
-  ggtitle('Figure 11') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
+  ggtitle('Figure 38') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
 
 ```
 
 ## Kimball Wiles Elementary
+
+Kimball Wiles Elementary had 924 total 1st graders in the time period 2007-2014 and an average obesity rate of 27.06, the median rate for large schools. The average obesity rate for 1st graders at Wiles Elementary rapidly increase from 2007 to 2009 and then dropped off in 2010. It began increasing again until 2012 and settled back down in 2013 and 2014 (figure 39). 
+
+In line with other schools, the Hispanic 1st graders at Wiles Elementary have the highest obesity rate whereas Asian students have the lowest (figure 40). 
+
+The distribution of obesity by gender varies, showing no clear pattern (figure 41). The peak in obesity rates in 2009 was driven primarily by students qualifying for free lunch. In addition the more recent obesity rates of 2013 and 2014 are also primarily driven by these same students (figure 42. )
+
+
+
 
 ### Obesity Rate by Year 
 
@@ -1091,7 +1137,7 @@ dat_school$percent <- (dat_school$obese/dat_school$total)*100
 dat_school$percent <- round(dat_school$percent, 2)
 
 # bar plot obesity rate 
-ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'black', colour = 'lightblue', alpha = 0.5) + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('') + ylab('Obesity Rate (%)') + ggtitle('Figure 8') + theme_bw()
+ggplot(data = dat_school, aes(year, percent)) + geom_bar(stat = 'identity', fill = 'black', colour = 'lightblue', alpha = 0.5) + geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + xlab('') + ylab('Obesity Rate (%)') + ggtitle('Figure 39') + theme_bw()
 
 ```
 
@@ -1126,10 +1172,13 @@ dat_race <- school %>%
 dat_race$percent <- (dat_race$obese/dat_race$total)*100
 dat_race$percent <- round(dat_race$percent, 2)
 
+# drop indian 
+dat_race <- dat_race[which(dat_race$race != 'Indian'),]
+
 # Line graph
 ggplot(data = dat_race, aes(race, percent)) + 
   geom_bar(stat = 'identity', fill = "black", colour = "lightblue", alpha = 0.5) + 
-  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + ggtitle('Figure 9') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
+  geom_text(aes(label=percent), position=position_dodge(width=0.9), vjust=1.5, colour = "white") + ggtitle('Figure 40') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
 
 ```
 
@@ -1150,7 +1199,7 @@ dat_gender$percent <- round(dat_gender$percent, 2)
 # Bar graph
 ggplot(data = dat_gender, aes(year, percent)) +
   geom_bar(aes(fill = factor(gender, labels = c('Female', 'Male'), )), stat = 'identity', position = 'dodge') + scale_fill_manual("Gender",values = alpha(c('#0023a0', '#f9a635'), .7)) + 
-  ggtitle('Figure 10') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
+  ggtitle('Figure 41') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
 ```
 
 ###  Obesity rate by lunch status (2007-2014)
@@ -1169,6 +1218,6 @@ dat_lunch$percent <- round(dat_lunch$percent, 2)
 # Bar graph
 ggplot(data = dat_lunch, aes(year, percent)) +
   geom_bar(aes(fill = factor(lunch, labels = c('Free', 'Not Free'), )), stat = 'identity', position = 'dodge') + scale_fill_manual("Lunch Status",values = alpha(c('black', 'grey'), .6)) + 
-  ggtitle('Figure 11') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
+  ggtitle('Figure 42') + xlab('') + ylab('Obesity Rate (%)') + theme_bw()
 
 ```
